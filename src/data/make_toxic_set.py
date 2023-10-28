@@ -2,11 +2,16 @@ import pandas as pd
 import spacy
 from typing import List
 from tqdm import tqdm
+import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.snowball import SnowballStemmer
 
+#  >>> import nltk
+#   >>> nltk.download('stopwords')
+stop_words = set(stopwords.words("english"))
+st = SnowballStemmer("english")
 nlp = spacy.load("en_core_web_md")
-df = pd.read_csv("data/raw/filtered.tsv", sep="\t")
-
-# for each entry find difference between translation and reference lemma wise
 
 
 def get_lemmas(text: str) -> List[str]:
@@ -55,7 +60,36 @@ def get_toxic_vocab(df):
     return pd.DataFrame(list(set(toxic_words)), columns=["toxic_words"])
 
 
-df_toxic = get_toxic_vocab(df)
+def clean_data(df, col, clean_col):
+    """
+    clean data removes punctuation, stopwords and gets the stem of the words in the given column
 
-# save as csv
-df_toxic.to_csv("data/interim/toxic_words.csv", index=False)
+    Example:
+        df = clean_data(df, "toxic_words", "clean")
+    """
+    # change to lower and remove spaces on either side
+    df[clean_col] = df[col].apply(lambda x: str(x).lower().strip())
+
+    # remove extra spaces in between
+    df[clean_col] = df[clean_col].apply(lambda x: re.sub(" +", " ", x))
+
+    # remove punctuation
+    df[clean_col] = df[clean_col].apply(lambda x: re.sub("[^a-zA-Z]", " ", x))
+
+    # remove stopwords and get the stem
+    df[clean_col] = df[clean_col].apply(
+        lambda x: " ".join(
+            st.stem(text) for text in x.split() if text not in stop_words
+        )
+    )
+
+    return df
+
+
+if __name__ == "__main__":
+    # load data
+    df = pd.read_csv("data/raw/filtered.tsv", sep="\t")
+    df_toxic = get_toxic_vocab(df)
+
+    # save as csv
+    df_toxic.to_csv("data/interim/toxic_words.csv", index=False)
