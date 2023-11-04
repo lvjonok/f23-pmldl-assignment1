@@ -49,3 +49,7 @@ if __name__ == "__main__":
     # save as csv
     df1.to_csv("data/interim/train.csv", index=False)
     df2.to_csv("data/interim/val.csv", index=False)
+
+    # save subset of validation dataset with only 500 entries
+    df2 = df2.sample(n=500)
+    df2.to_csv("data/interim/val_subset.csv", index=False)
