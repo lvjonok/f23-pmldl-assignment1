@@ -21,6 +21,7 @@ def simple_hist(data, title, xlabel, ylabel, save_path=None, **kwargs):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.grid()
+    plt.legend()
     if save_path:
         plt.savefig(save_path)
 
